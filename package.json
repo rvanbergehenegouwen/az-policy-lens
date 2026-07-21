@@ -1,0 +1,31 @@
+{
+  "name": "az-policy-lens",
+  "version": "1.0.0",
+  "description": "Azure Policy Compliance Dashboard - Visualize and manage Azure policy assignments, compliance frameworks, and audit logs",
+  "scripts": {
+    "dev": "npm run dev:backend & npm run dev:frontend",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:backend": "cd backend && npm run dev",
+    "build": "npm run build:backend && npm run build:frontend",
+    "build:frontend": "cd frontend && npm run build",
+    "build:backend": "cd backend && npm run build",
+    "test": "npm run test:backend && npm run test:frontend",
+    "test:backend": "cd backend && npm test",
+    "test:frontend": "cd frontend && npm test",
+    "generate-changelog": "git log $(git describe --tags --abbrev=0)..HEAD --oneline > CHANGELOG.md"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rvanbergehenegouwen/az-policy-lens.git"
+  },
+  "keywords": [
+    "azure",
+    "policy",
+    "compliance",
+    "governance",
+    "dashboard",
+    "audit"
+  ],
+  "author": "Richard van Berge Henegouwen",
+  "license": "MIT"
+}

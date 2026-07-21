@@ -1,0 +1,16 @@
+name: az-policy-lens
+metadata:
+  template: "az-policy-lens@0.1.0"
+  description: "Azure Policy Compliance Dashboard"
+services:
+  api:
+    project: backend
+    language: ts
+    host: appservice
+  web:
+    project: frontend
+    language: ts
+    host: appservice
+infra:
+  path: infra
+  module: main
