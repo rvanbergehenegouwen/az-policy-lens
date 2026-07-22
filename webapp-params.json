@@ -1,0 +1,6 @@
+{
+  "resourceGroupName": "az-policy-lens-rg",
+  "appServicePlanName": "az-policy-lens-plan-dev",
+  "appServiceName": "az-policy-lens-app-dev",
+  "runtime": "node|20-lts"
+}
