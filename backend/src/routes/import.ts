@@ -2,10 +2,18 @@ import express, { Request, Response } from 'express'
 import { getDatabase } from '../database/db.js'
 import { randomUUID } from 'crypto'
 import multer from 'multer'
-import csv from 'csv-parser'
 
 const router = express.Router()
 const upload = multer({ storage: multer.memoryStorage() })
+
+// Type augmentation for multer
+declare global {
+  namespace Express {
+    interface Request {
+      file?: Express.Multer.File
+    }
+  }
+}
 
 // Import policies from CSV
 router.post('/policies', upload.single('file'), async (req: Request, res: Response) => {
@@ -22,7 +30,7 @@ router.post('/policies', upload.single('file'), async (req: Request, res: Respon
 
     const fileContent = req.file.buffer.toString('utf-8')
     const lines = fileContent.split('\n')
-    const headers = lines[0].split(',').map((h) => h.trim())
+    const headers = lines[0].split(',').map((h: string) => h.trim())
 
     let rowCount = 0
     const statement = db.prepare(`
@@ -37,10 +45,10 @@ router.post('/policies', upload.single('file'), async (req: Request, res: Respon
         const line = lines[i].trim()
         if (!line) continue
 
-        const values = line.split(',').map((v) => v.trim().replace(/^"/, '').replace(/"$/, ''))
+        const values = line.split(',').map((v: string) => v.trim().replace(/^"/, '').replace(/"$/, ''))
         const row: any = {}
 
-        headers.forEach((header, index) => {
+        headers.forEach((header: string, index: number) => {
           row[header] = values[index]
         })
 

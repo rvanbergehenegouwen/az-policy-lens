@@ -1,6 +1,5 @@
 import express, { Request, Response } from 'express'
 import { getDatabase } from '../database/db.js'
-import { v4 as uuidv4 } from 'crypto'
 
 const router = express.Router()
 

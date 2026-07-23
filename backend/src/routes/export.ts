@@ -1,11 +1,10 @@
 import express, { Request, Response } from 'express'
 import { getDatabase } from '../database/db.js'
-import { Readable } from 'stream'
 
 const router = express.Router()
 
 // Export policies as CSV
-router.get('/policies', (req: Request, res: Response) => {
+router.get('/policies', (_req: Request, res: Response) => {
   try {
     const db = getDatabase()
 
@@ -56,7 +55,7 @@ router.get('/policies', (req: Request, res: Response) => {
 })
 
 // Export compliance report
-router.get('/report', (req: Request, res: Response) => {
+router.get('/report', (_req: Request, res: Response) => {
   try {
     const db = getDatabase()
 

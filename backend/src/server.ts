@@ -1,4 +1,4 @@
-import express from 'express'
+import express, { Request, Response, NextFunction } from 'express'
 import cors from 'cors'
 import { getDatabase, closeDatabase } from './database/db.js'
 import policiesRouter from './routes/policies.js'
@@ -12,7 +12,7 @@ const app = express()
 const PORT = process.env.PORT || 3001
 
 // Middleware
-app.use(cors())
+app.use(cors() as any)
 app.use(express.json({ limit: '50mb' }))
 app.use(express.urlencoded({ limit: '50mb', extended: true }))
 
@@ -34,12 +34,12 @@ app.use('/api/export', exportRouter)
 app.use('/api/audit', auditRouter)
 
 // Health check
-app.get('/health', (req, res) => {
+app.get('/health', (_req: Request, res: Response) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() })
 })
 
 // Root endpoint
-app.get('/', (req, res) => {
+app.get('/', (_req: Request, res: Response) => {
   res.json({
     name: 'Azure Policy Lens API',
     version: '1.0.0',
@@ -56,7 +56,7 @@ app.get('/', (req, res) => {
 })
 
 // Error handling middleware
-app.use((err: any, req: any, res: any, next: any) => {
+app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
   console.error('Error:', err)
   res.status(err.status || 500).json({
     error: err.message || 'Internal server error',
@@ -64,7 +64,7 @@ app.use((err: any, req: any, res: any, next: any) => {
 })
 
 // 404 handler
-app.use((req, res) => {
+app.use((_req: Request, res: Response) => {
   res.status(404).json({ error: 'Not found' })
 })
 

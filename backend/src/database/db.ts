@@ -10,9 +10,13 @@ let db: Database.Database | null = null
 
 export function getDatabase(): Database.Database {
   if (!db) {
-    // Ensure data directory exists
-    const fs = await import('fs').then(m => m.promises)
-    await fs.mkdir(dataDir, { recursive: true }).catch(() => {})
+    // Ensure data directory exists synchronously
+    const fs = require('fs')
+    try {
+      fs.mkdirSync(dataDir, { recursive: true })
+    } catch (err) {
+      // Directory already exists
+    }
     
     db = new Database(dbPath)
     db.pragma('journal_mode = WAL')

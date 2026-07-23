@@ -11,14 +11,13 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
+  AZURE_WEBAPP_NAME: 'az-policy-lens-app-dev'
+  AZURE_RG: 'az-policy-lens-rg'
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -29,38 +28,38 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
-      - name: Install dependencies (backend)
-        run: |
-          cd backend
-          npm ci
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install backend dependencies
+        run: cd backend && npm ci --ignore-scripts
+
+      - name: Install frontend dependencies
+        run: cd frontend && npm ci --legacy-peer-deps
 
       - name: Build backend
-        run: |
-          cd backend
-          npm run build
-
-      - name: Install dependencies (frontend)
-        run: |
-          cd frontend
-          npm ci
+        run: cd backend && npm run build
 
       - name: Build frontend
-        run: |
-          cd frontend
-          npm run build
+        run: cd frontend && npm run build
 
-      - name: Upload build artifacts
+      - name: Prepare deployment package
+        run: |
+          mkdir -p deploy
+          cp -r backend/dist deploy/
+          cp -r backend/node_modules deploy/
+          cp -r frontend/dist deploy/public
+          cp backend/package.json deploy/
+          cp backend/package-lock.json deploy/
+
+      - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: build
-          path: |
-            backend/dist
-            frontend/dist
-            backend/package.json
-            backend/package-lock.json
+          name: app-build
+          path: deploy/
 
   deploy:
-    needs: build-and-deploy
+    needs: build
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
 
@@ -68,19 +67,24 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Download build artifacts
+      - name: Download artifacts
         uses: actions/download-artifact@v3
         with:
-          name: build
+          name: app-build
+          path: deploy/
 
-      - name: Azure Login
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - name: Set up Azure CLI
+        uses: azure/setup-azure-cli@v3
 
-      - name: Deploy to App Service
-        uses: azure/webapps-deploy@v2
-        with:
-          app-name: 'az-policy-lens-app-dev'
-          publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
-          package: .
+      - name: Deploy via zip deploy
+        run: |
+          cd deploy
+          zip -r app.zip .
+          az webapp deployment source config-zip \
+            --resource-group ${{ env.AZURE_RG }} \
+            --name ${{ env.AZURE_WEBAPP_NAME }} \
+            --src-path app.zip
+        shell: bash
+        env:
+          AZURE_STORAGE_ACCOUNT: ${{ secrets.AZURE_STORAGE_ACCOUNT }}
+          AZURE_STORAGE_KEY: ${{ secrets.AZURE_STORAGE_KEY }}

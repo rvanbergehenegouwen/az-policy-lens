@@ -4,7 +4,7 @@ import { getDatabase } from '../database/db.js'
 const router = express.Router()
 
 // Get overall compliance summary
-router.get('/', (req: Request, res: Response) => {
+router.get('/', (_req: Request, res: Response) => {
   try {
     const db = getDatabase()
 
@@ -28,7 +28,7 @@ router.get('/', (req: Request, res: Response) => {
 })
 
 // Get compliance by framework
-router.get('/frameworks', (req: Request, res: Response) => {
+router.get('/frameworks', (_req: Request, res: Response) => {
   try {
     const db = getDatabase()
 
