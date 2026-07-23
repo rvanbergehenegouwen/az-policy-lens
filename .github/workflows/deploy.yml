@@ -1,4 +1,4 @@
-name: Build and Test
+name: Build and Deploy
 
 on:
   push:
@@ -7,6 +7,10 @@ on:
   pull_request:
     branches:
       - main
+
+env:
+  AZURE_WEBAPP_NAME: 'az-policy-lens-app-dev'
+  AZURE_RG: 'az-policy-lens-rg'
 
 jobs:
   build:
@@ -33,7 +37,37 @@ jobs:
       - name: Build frontend
         run: cd frontend && npm run build
 
-      - name: Check build artifacts
+      - name: Prepare deployment package
         run: |
-          ls -la backend/dist/
-          ls -la frontend/dist/
+          mkdir -p deploy
+          cp -r backend/dist deploy/
+          cp -r backend/node_modules deploy/
+          cp -r frontend/dist deploy/public
+          cp backend/package.json deploy/
+          cp backend/package-lock.json deploy/
+          cp -r backend/src deploy/src || true
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-build
+          path: deploy/
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: app-build
+          path: deploy/
+
+      - name: Deploy to App Service
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
+          package: deploy/
