@@ -45,6 +45,7 @@ jobs:
           cp -r frontend/dist deploy/public
           cp backend/package.json deploy/
           cp backend/package-lock.json deploy/
+          cp web.config deploy/
           cp -r backend/src deploy/src || true
 
       - name: Upload artifacts
