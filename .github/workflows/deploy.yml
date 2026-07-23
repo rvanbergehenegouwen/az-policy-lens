@@ -43,11 +43,21 @@ jobs:
           cp -r backend/dist deploy/
           cp -r frontend/dist deploy/public
           cp web.config deploy/
-          # Include backend package.json and node_modules for production
-          cp backend/package.json deploy/
-          cp backend/package-lock.json deploy/ || true
-          # Install production-only dependencies
-          cd deploy && npm ci --production && cd ..
+          # Create a minimal package.json that tells App Service NOT to build
+          cat > deploy/package.json << 'EOF'
+          {
+            "name": "az-policy-lens-backend",
+            "version": "1.0.0",
+            "type": "module",
+            "main": "dist/server.js",
+            "scripts": {
+              "start": "node dist/server.js"
+            },
+            "engines": {
+              "node": "22"
+            }
+          }
+          EOF
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
