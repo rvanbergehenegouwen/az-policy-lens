@@ -41,12 +41,13 @@ jobs:
         run: |
           mkdir -p deploy
           cp -r backend/dist deploy/
-          cp -r backend/node_modules deploy/
           cp -r frontend/dist deploy/public
-          cp backend/package.json deploy/
-          cp backend/package-lock.json deploy/
           cp web.config deploy/
-          cp -r backend/src deploy/src || true
+          # Include backend package.json and node_modules for production
+          cp backend/package.json deploy/
+          cp backend/package-lock.json deploy/ || true
+          # Install production-only dependencies
+          cd deploy && npm ci --production && cd ..
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
