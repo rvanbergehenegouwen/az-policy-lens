@@ -1,4 +1,4 @@
-name: Deploy to Azure
+name: Build and Test
 
 on:
   push:
@@ -7,12 +7,6 @@ on:
   pull_request:
     branches:
       - main
-
-env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
-  AZURE_WEBAPP_NAME: 'az-policy-lens-app-dev'
-  AZURE_RG: 'az-policy-lens-rg'
 
 jobs:
   build:
@@ -26,10 +20,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
 
       - name: Install backend dependencies
         run: cd backend && npm ci --ignore-scripts
@@ -43,48 +33,7 @@ jobs:
       - name: Build frontend
         run: cd frontend && npm run build
 
-      - name: Prepare deployment package
+      - name: Check build artifacts
         run: |
-          mkdir -p deploy
-          cp -r backend/dist deploy/
-          cp -r backend/node_modules deploy/
-          cp -r frontend/dist deploy/public
-          cp backend/package.json deploy/
-          cp backend/package-lock.json deploy/
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: app-build
-          path: deploy/
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Download artifacts
-        uses: actions/download-artifact@v3
-        with:
-          name: app-build
-          path: deploy/
-
-      - name: Set up Azure CLI
-        uses: azure/setup-azure-cli@v3
-
-      - name: Deploy via zip deploy
-        run: |
-          cd deploy
-          zip -r app.zip .
-          az webapp deployment source config-zip \
-            --resource-group ${{ env.AZURE_RG }} \
-            --name ${{ env.AZURE_WEBAPP_NAME }} \
-            --src-path app.zip
-        shell: bash
-        env:
-          AZURE_STORAGE_ACCOUNT: ${{ secrets.AZURE_STORAGE_ACCOUNT }}
-          AZURE_STORAGE_KEY: ${{ secrets.AZURE_STORAGE_KEY }}
+          ls -la backend/dist/
+          ls -la frontend/dist/
