@@ -44,20 +44,7 @@ jobs:
           cp -r frontend/dist deploy/public
           cp web.config deploy/
           # Create a minimal package.json that tells App Service NOT to build
-          cat > deploy/package.json << 'EOF'
-          {
-            "name": "az-policy-lens-backend",
-            "version": "1.0.0",
-            "type": "module",
-            "main": "dist/server.js",
-            "scripts": {
-              "start": "node dist/server.js"
-            },
-            "engines": {
-              "node": "22"
-            }
-          }
-          EOF
+          echo '{"name":"az-policy-lens-backend","version":"1.0.0","type":"module","main":"dist/server.js","scripts":{"start":"node dist/server.js"},"engines":{"node":"22"}}' > deploy/package.json
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
